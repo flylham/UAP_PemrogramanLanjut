@@ -1,13 +1,13 @@
 package com.hotel;
 
-import com.hotel.gui.DashboardScreen;
+import com.hotel.auth.LoginScreen;
 import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-                // Pakai tema Nimbus yang sudah modern
+                // Pakai tema Nimbus yang modern
                 UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
             } catch (Exception e) {
                 try {
@@ -18,10 +18,10 @@ public class Main {
                 }
             }
 
-            // Buat dan tampilkan dashboard
-            DashboardScreen dashboard = new DashboardScreen();
-            dashboard.setVisible(true);
-            dashboard.setLocationRelativeTo(null); // Center window
+            // Mulai dari Login Screen, bukan langsung Dashboard
+            LoginScreen loginScreen = new LoginScreen();
+            loginScreen.setVisible(true);
+            loginScreen.setLocationRelativeTo(null);
         });
     }
 }

@@ -1,162 +1,251 @@
 package com.hotel.gui;
 
-import com.hotel.database.DatabaseManager;
-import com.hotel.model.Reservation;
+import com.hotel.model.User;
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
-import com.hotel.model.Room;
+import java.time.format.DateTimeFormatter;
 
 public class ReservationScreen extends JFrame {
-    private DatabaseManager db = DatabaseManager.getInstance();
-    private JTextField nameField, emailField, phoneField;
-    private JComboBox<String> roomComboBox;
-    private JSpinner checkInSpinner, checkOutSpinner;
+    private User currentUser;
+    private UserDashboardScreen parent;
 
-    public ReservationScreen() {
+    public ReservationScreen(User user, UserDashboardScreen parent) {
+        this.currentUser = user;
+        this.parent = parent;
         initUI();
     }
 
     private void initUI() {
-        setTitle("Baobab Safari Resort - Reservasi Baru");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(800, 600);
-        setLocationRelativeTo(null);
+        setTitle("Otto Dinoyo Resort - Buat Reservasi");
+        setSize(800, 700);
+        setLocationRelativeTo(parent);
+        setLayout(new BorderLayout());
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(new Color(244, 241, 222));
+        JPanel headerPanel = createHeader();
+        JPanel formPanel = createReservationForm();
 
-        // Header
-        JLabel titleLabel = new JLabel("FORMULIR RESERVASI");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(121, 85, 72));
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        add(headerPanel, BorderLayout.NORTH);
+        add(new JScrollPane(formPanel), BorderLayout.CENTER);
+    }
 
-        // Form panel
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(new Color(244, 241, 222));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+    private JPanel createHeader() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(44, 62, 80));
+        headerPanel.setPreferredSize(new Dimension(800, 70));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 20));
 
-        // Nama
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Nama Lengkap:"), gbc);
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        titlePanel.setBackground(new Color(44, 62, 80));
 
-        gbc.gridx = 1;
-        nameField = new JTextField(20);
-        formPanel.add(nameField, gbc);
+        JLabel iconLabel = new JLabel("📅");
+        iconLabel.setFont(new Font("Segoe UI", Font.PLAIN, 32));
+        iconLabel.setForeground(new Color(46, 204, 113));
 
-        // Email
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Email:"), gbc);
+        JLabel titleLabel = new JLabel("Buat Reservasi Baru");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        titleLabel.setForeground(Color.WHITE);
 
-        gbc.gridx = 1;
-        emailField = new JTextField(20);
-        formPanel.add(emailField, gbc);
+        titlePanel.add(iconLabel);
+        titlePanel.add(titleLabel);
 
-        // Telepon
-        gbc.gridx = 0; gbc.gridy = 2;
-        formPanel.add(new JLabel("No. Telepon:"), gbc);
+        JButton backBtn = new JButton("← Kembali");
+        backBtn.setBackground(new Color(52, 152, 219));
+        backBtn.setForeground(Color.WHITE);
+        backBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        backBtn.addActionListener(e -> dispose());
 
-        gbc.gridx = 1;
-        phoneField = new JTextField(20);
-        formPanel.add(phoneField, gbc);
+        headerPanel.add(titlePanel, BorderLayout.WEST);
+        headerPanel.add(backBtn, BorderLayout.EAST);
 
-        // Kamar
-        gbc.gridx = 0; gbc.gridy = 3;
-        formPanel.add(new JLabel("Pilih Kamar:"), gbc);
+        return headerPanel;
+    }
 
-        gbc.gridx = 1;
-        roomComboBox = new JComboBox<>();
-        db.getAllRooms().stream()
-                .filter(Room::isAvailable)
-                .forEach(r -> roomComboBox.addItem(r.getName() + " - Rp " + String.format("%,.0f", r.getPrice())));
-        formPanel.add(roomComboBox, gbc);
+    private JPanel createReservationForm() {
+        JPanel formPanel = new JPanel();
+        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
+        formPanel.setBackground(Color.WHITE);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
 
-        // Check-in
-        gbc.gridx = 0; gbc.gridy = 4;
-        formPanel.add(new JLabel("Tanggal Check-in:"), gbc);
+        String[] labels = {"Nama Pemesan:", "Tipe Kamar:", "Check-in:", "Check-out:", "Jumlah Kamar:", "Jumlah Tamu:", "Permintaan Khusus:"};
+        JComponent[] fields = new JComponent[labels.length];
 
-        gbc.gridx = 1;
-        checkInSpinner = new JSpinner(new SpinnerDateModel());
-        JSpinner.DateEditor dateEditor1 = new JSpinner.DateEditor(checkInSpinner, "dd/MM/yyyy");
-        checkInSpinner.setEditor(dateEditor1);
-        formPanel.add(checkInSpinner, gbc);
+        fields[0] = new JTextField(currentUser.getFullName());
+        fields[0].setEnabled(false);
 
-        // Check-out
-        gbc.gridx = 0; gbc.gridy = 5;
-        formPanel.add(new JLabel("Tanggal Check-out:"), gbc);
+        JComboBox<String> roomTypeCombo = new JComboBox<>(new String[]{
+                "Standard Room", "Deluxe Room", "Family Room",
+                "Suite Room", "Presidential Suite", "Safari View Room"
+        });
+        fields[1] = roomTypeCombo;
 
-        gbc.gridx = 1;
-        checkOutSpinner = new JSpinner(new SpinnerDateModel());
-        JSpinner.DateEditor dateEditor2 = new JSpinner.DateEditor(checkOutSpinner, "dd/MM/yyyy");
-        checkOutSpinner.setEditor(dateEditor2);
-        formPanel.add(checkOutSpinner, gbc);
+        JTextField checkinField = new JTextField(LocalDate.now().plusDays(1).toString());
+        JButton checkinBtn = new JButton("📅");
+        checkinBtn.addActionListener(e -> {
+            String date = JOptionPane.showInputDialog(this, "Masukkan tanggal check-in (YYYY-MM-DD):",
+                    LocalDate.now().plusDays(1).toString());
+            if (date != null && !date.trim().isEmpty()) {
+                checkinField.setText(date);
+            }
+        });
 
-        // Button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
-        buttonPanel.setBackground(new Color(244, 241, 222));
+        JPanel checkinPanel = new JPanel(new BorderLayout(5, 0));
+        checkinPanel.add(checkinField, BorderLayout.CENTER);
+        checkinPanel.add(checkinBtn, BorderLayout.EAST);
+        fields[2] = checkinPanel;
 
-        JButton submitBtn = new JButton("Simpan Reservasi");
-        JButton cancelBtn = new JButton("Batal");
+        JTextField checkoutField = new JTextField(LocalDate.now().plusDays(3).toString());
+        JButton checkoutBtn = new JButton("📅");
+        checkoutBtn.addActionListener(e -> {
+            String date = JOptionPane.showInputDialog(this, "Masukkan tanggal check-out (YYYY-MM-DD):",
+                    LocalDate.now().plusDays(3).toString());
+            if (date != null && !date.trim().isEmpty()) {
+                checkoutField.setText(date);
+            }
+        });
 
-        styleButton(submitBtn, new Color(139, 195, 74));
-        styleButton(cancelBtn, new Color(121, 85, 72));
+        JPanel checkoutPanel = new JPanel(new BorderLayout(5, 0));
+        checkoutPanel.add(checkoutField, BorderLayout.CENTER);
+        checkoutPanel.add(checkoutBtn, BorderLayout.EAST);
+        fields[3] = checkoutPanel;
 
-        submitBtn.addActionListener(e -> saveReservation());
-        cancelBtn.addActionListener(e -> {
-            new DashboardScreen().setVisible(true);
+        JSpinner roomSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 5, 1));
+        fields[4] = roomSpinner;
+
+        JSpinner guestSpinner = new JSpinner(new SpinnerNumberModel(2, 1, 10, 1));
+        fields[5] = guestSpinner;
+
+        JTextArea specialRequest = new JTextArea(3, 30);
+        specialRequest.setLineWrap(true);
+        specialRequest.setWrapStyleWord(true);
+        specialRequest.setText("Tidak ada catatan");
+        fields[6] = new JScrollPane(specialRequest);
+
+        for (int i = 0; i < labels.length; i++) {
+            JPanel fieldPanel = new JPanel(new BorderLayout(10, 10));
+            fieldPanel.setBackground(Color.WHITE);
+            fieldPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+
+            JLabel label = new JLabel(labels[i]);
+            label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            label.setPreferredSize(new Dimension(150, 30));
+
+            if (fields[i] instanceof JComponent) {
+                ((JComponent)fields[i]).setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            }
+
+            fieldPanel.add(label, BorderLayout.WEST);
+            fieldPanel.add(fields[i], BorderLayout.CENTER);
+
+            formPanel.add(fieldPanel);
+            formPanel.add(Box.createVerticalStrut(10));
+        }
+
+        JButton submitBtn = new JButton("💾 Buat Reservasi");
+        submitBtn.setBackground(new Color(46, 204, 113));
+        submitBtn.setForeground(Color.WHITE);
+        submitBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        submitBtn.setBorder(BorderFactory.createEmptyBorder(15, 40, 15, 40));
+        submitBtn.addActionListener(e -> {
+            String roomType = (String) roomTypeCombo.getSelectedItem();
+            String checkIn = checkinField.getText();
+            String checkOut = checkoutField.getText();
+            int rooms = (int) roomSpinner.getValue();
+            int guests = (int) guestSpinner.getValue();
+            String notes = specialRequest.getText();
+
+            if (checkIn.isEmpty() || checkOut.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Harap isi tanggal check-in dan check-out!",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            try {
+                LocalDate.parse(checkIn);
+                LocalDate.parse(checkOut);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Format tanggal tidak valid! Gunakan format YYYY-MM-DD",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String reservationCode = "OT" + String.format("%06d", (int)(Math.random() * 1000000));
+
+            double pricePerNight = 0;
+            switch (roomType) {
+                case "Standard Room": pricePerNight = 750000; break;
+                case "Deluxe Room": pricePerNight = 1200000; break;
+                case "Family Room": pricePerNight = 1500000; break;
+                case "Suite Room": pricePerNight = 2500000; break;
+                case "Presidential Suite": pricePerNight = 5000000; break;
+                case "Safari View Room": pricePerNight = 3750000; break;
+            }
+
+            long daysBetween = 3;
+            try {
+                LocalDate start = LocalDate.parse(checkIn);
+                LocalDate end = LocalDate.parse(checkOut);
+                daysBetween = java.time.temporal.ChronoUnit.DAYS.between(start, end);
+                if (daysBetween <= 0) {
+                    JOptionPane.showMessageDialog(this,
+                            "Tanggal check-out harus setelah tanggal check-in!",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } catch (Exception ex) {
+                daysBetween = 3;
+            }
+
+            double total = pricePerNight * rooms * daysBetween;
+            String totalFormatted = String.format("Rp %,.0f", total);
+
+            String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+
+            // Status langsung "Dikonfirmasi" (bukan "Pending")
+            UserDashboardScreen.Reservation newReservation = parent.new Reservation(
+                    reservationCode, currentDate, roomType, "Dikonfirmasi", totalFormatted,
+                    notes, checkIn, checkOut, rooms, guests
+            );
+
+            // Simpan ke sistem (ini akan memanggil saveReservationToDailyFolder otomatis)
+            parent.addReservation(newReservation);
+
+            String confirmation = String.format("""
+                <html>
+                <div style='padding: 20px; max-width: 500px;'>
+                    <h2 style='color: #27AE60;'>✅ Reservasi Berhasil!</h2>
+                    <table style='width: 100%%; border-collapse: collapse; margin: 15px 0;'>
+                        <tr><td><b>Nama Pemesan:</b></td><td>%s</td></tr>
+                        <tr><td><b>Kode Reservasi:</b></td><td>%s</td></tr>
+                        <tr><td><b>Tipe Kamar:</b></td><td>%s</td></tr>
+                        <tr><td><b>Check-in:</b></td><td>%s</td></tr>
+                        <tr><td><b>Check-out:</b></td><td>%s</td></tr>
+                        <tr><td><b>Jumlah Kamar:</b></td><td>%d</td></tr>
+                        <tr><td><b>Jumlah Tamu:</b></td><td>%d</td></tr>
+                        <tr><td><b>Total:</b></td><td>%s</td></tr>
+                        <tr><td><b>Status:</b></td><td><span style='color: #27AE60;'>✅ Dikonfirmasi</span></td></tr>
+                    </table>
+                    <p><small>Data telah disimpan ke folder tanggal</small></p>
+                </div>
+                </html>
+                """,
+                    currentUser.getFullName(), reservationCode, roomType, checkIn, checkOut,
+                    rooms, guests, totalFormatted
+            );
+
+            JOptionPane.showMessageDialog(this, confirmation, "Reservasi Berhasil", JOptionPane.INFORMATION_MESSAGE);
             dispose();
         });
 
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.WHITE);
         buttonPanel.add(submitBtn);
-        buttonPanel.add(cancelBtn);
 
-        mainPanel.add(titleLabel, BorderLayout.NORTH);
-        mainPanel.add(formPanel, BorderLayout.CENTER);
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        formPanel.add(Box.createVerticalStrut(30));
+        formPanel.add(buttonPanel);
 
-        add(mainPanel);
-    }
-
-    private void saveReservation() {
-        if (validateForm()) {
-            Reservation reservation = new Reservation(
-                    0,
-                    nameField.getText(),
-                    emailField.getText(),
-                    phoneField.getText(),
-                    1, // ID kamar sederhana
-                    LocalDate.now(),
-                    LocalDate.now().plusDays(3),
-                    "PENDING"
-            );
-
-            db.addReservation(reservation);
-            JOptionPane.showMessageDialog(this, "Reservasi berhasil disimpan!",
-                    "Sukses", JOptionPane.INFORMATION_MESSAGE);
-
-            new DashboardScreen().setVisible(true);
-            dispose();
-        }
-    }
-
-    private boolean validateForm() {
-        if (nameField.getText().isEmpty() || emailField.getText().isEmpty() || phoneField.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Harap lengkapi semua field!",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-        return true;
-    }
-
-    private void styleButton(JButton button, Color color) {
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setFocusPainted(false);
-        button.setPreferredSize(new Dimension(200, 40));
+        return formPanel;
     }
 }

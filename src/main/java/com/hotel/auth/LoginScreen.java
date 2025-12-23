@@ -2,7 +2,6 @@ package com.hotel.auth;
 
 import com.hotel.database.AuthManager;
 import com.hotel.model.User;
-import com.hotel.gui.AdminDashboardScreen;
 import com.hotel.gui.UserDashboardScreen;
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +16,7 @@ public class LoginScreen extends JFrame {
     }
 
     private void initUI() {
-        setTitle("Baobab Safari Resort - Login");
+        setTitle("Otto Dinoyo Resort - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(450, 400);
         setLocationRelativeTo(null);
@@ -32,7 +31,7 @@ public class LoginScreen extends JFrame {
         headerPanel.setBackground(new Color(121, 85, 72)); // Coklat safari
         headerPanel.setPreferredSize(new Dimension(450, 100));
 
-        JLabel titleLabel = new JLabel("BAOBAB SAFARI RESORT");
+        JLabel titleLabel = new JLabel("OTTO DINOYO RESORT");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -130,7 +129,7 @@ public class LoginScreen extends JFrame {
         buttonPanel.add(exitBtn);
 
         // ========== FOOTER ==========
-        JLabel footerLabel = new JLabel("© 2024 Baobab Safari Resort", SwingConstants.CENTER);
+        JLabel footerLabel = new JLabel("© 2025 Otto Dinoyo Resort", SwingConstants.CENTER);
         footerLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         footerLabel.setForeground(new Color(121, 85, 72));
         footerLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
@@ -173,17 +172,14 @@ public class LoginScreen extends JFrame {
         User authenticatedUser = AuthManager.getInstance().authenticate(username, password);
 
         if (authenticatedUser != null) {
+            // Cek apakah user memiliki role yang valid (tidak perlu ADMIN)
+            // Untuk sistem ini, semua user yang terautentikasi langsung ke dashboard user
             JOptionPane.showMessageDialog(this,
                     "Login berhasil!\nWelcome " + authenticatedUser.getFullName(),
                     "Success", JOptionPane.INFORMATION_MESSAGE);
 
-            // Redirect ke dashboard berdasarkan role (LOGIKA SAMA)
-            if ("ADMIN".equals(authenticatedUser.getRole())) {
-                new AdminDashboardScreen(authenticatedUser).setVisible(true);
-            } else {
-                new UserDashboardScreen(authenticatedUser).setVisible(true);
-            }
-
+            // Selalu redirect ke UserDashboardScreen tanpa pengecekan role
+            new UserDashboardScreen(authenticatedUser).setVisible(true);
             dispose();
         } else {
             JOptionPane.showMessageDialog(this,
