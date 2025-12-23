@@ -1,6 +1,5 @@
 package com.hotel;
 
-import com.hotel.gui.DashboardScreen;
 import javax.swing.*;
 
 public class Main {
