@@ -55,30 +55,8 @@ public class DatabaseManager {
         rooms.add(room);
     }
 
-    public boolean updateRoom(Room updatedRoom) {
-        for (int i = 0; i < rooms.size(); i++) {
-            if (rooms.get(i).getId() == updatedRoom.getId()) {
-                rooms.set(i, updatedRoom);
-                return true;
-            }
-        }
-        return false;
-    }
-
     public boolean deleteRoom(int id) {
         return rooms.removeIf(r -> r.getId() == id);
-    }
-
-    // ========== CRUD untuk Reservation ==========
-    public List<Reservation> getAllReservations() {
-        return new ArrayList<>(reservations);
-    }
-
-    public Reservation getReservationById(int id) {
-        return reservations.stream()
-                .filter(r -> r.getId() == id)
-                .findFirst()
-                .orElse(null);
     }
 
     public void addReservation(Reservation reservation) {
@@ -94,10 +72,6 @@ public class DatabaseManager {
             }
         }
         return false;
-    }
-
-    public boolean deleteReservation(int id) {
-        return reservations.removeIf(r -> r.getId() == id);
     }
 
     // METHOD TAMBAHAN untuk kemudahan
