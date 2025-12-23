@@ -2,23 +2,45 @@ package com.hotel.gui;
 
 import com.hotel.database.DatabaseManager;
 import com.hotel.model.Reservation;
+import com.hotel.model.Room;
+import com.hotel.auth.LoginScreen;
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
-import com.hotel.model.Room;
+import java.time.ZoneId;
+import java.util.Date;
 
 public class ReservationScreen extends JFrame {
     private DatabaseManager db = DatabaseManager.getInstance();
     private JTextField nameField, emailField, phoneField;
     private JComboBox<String> roomComboBox;
     private JSpinner checkInSpinner, checkOutSpinner;
+    private int preselectedRoomId = -1;
 
+    // Constructor 1: Tanpa parameter
     public ReservationScreen() {
         initUI();
+        loadAvailableRooms();
+    }
+
+    // Constructor 2: Dengan pre-selected room
+    public ReservationScreen(int roomId, String roomName) {
+        this.preselectedRoomId = roomId;
+        initUI();
+        loadAvailableRooms();
+
+        if (roomId > 0 && roomName != null) {
+            for (int i = 0; i < roomComboBox.getItemCount(); i++) {
+                if (roomComboBox.getItemAt(i).contains(roomName)) {
+                    roomComboBox.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
     }
 
     private void initUI() {
-        setTitle("Baobab Safari Resort - Reservasi Baru");
+        setTitle("Baobab Safari Resort - Form Reservasi");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(800, 600);
         setLocationRelativeTo(null);
@@ -27,15 +49,20 @@ public class ReservationScreen extends JFrame {
         mainPanel.setBackground(new Color(244, 241, 222));
 
         // Header
+        JPanel headerPanel = new JPanel();
+        headerPanel.setBackground(new Color(121, 85, 72));
+        headerPanel.setPreferredSize(new Dimension(800, 100));
+
         JLabel titleLabel = new JLabel("FORMULIR RESERVASI");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(121, 85, 72));
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        titleLabel.setForeground(Color.WHITE);
+        headerPanel.add(titleLabel);
 
         // Form panel
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(new Color(244, 241, 222));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(30, 50, 20, 50));
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -70,9 +97,7 @@ public class ReservationScreen extends JFrame {
 
         gbc.gridx = 1;
         roomComboBox = new JComboBox<>();
-        db.getAllRooms().stream()
-                .filter(Room::isAvailable)
-                .forEach(r -> roomComboBox.addItem(r.getName() + " - Rp " + String.format("%,.0f", r.getPrice())));
+        roomComboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         formPanel.add(roomComboBox, gbc);
 
         // Check-in
@@ -83,6 +108,7 @@ public class ReservationScreen extends JFrame {
         checkInSpinner = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor dateEditor1 = new JSpinner.DateEditor(checkInSpinner, "dd/MM/yyyy");
         checkInSpinner.setEditor(dateEditor1);
+        checkInSpinner.setValue(new Date());
         formPanel.add(checkInSpinner, gbc);
 
         // Check-out
@@ -93,6 +119,9 @@ public class ReservationScreen extends JFrame {
         checkOutSpinner = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor dateEditor2 = new JSpinner.DateEditor(checkOutSpinner, "dd/MM/yyyy");
         checkOutSpinner.setEditor(dateEditor2);
+
+        Date tomorrow = new Date(System.currentTimeMillis() + (1000 * 60 * 60 * 24 * 2));
+        checkOutSpinner.setValue(tomorrow);
         formPanel.add(checkOutSpinner, gbc);
 
         // Button panel
@@ -101,62 +130,201 @@ public class ReservationScreen extends JFrame {
 
         JButton submitBtn = new JButton("Simpan Reservasi");
         JButton cancelBtn = new JButton("Batal");
+        JButton clearBtn = new JButton("Bersihkan");
 
-        styleButton(submitBtn, new Color(139, 195, 74));
-        styleButton(cancelBtn, new Color(121, 85, 72));
+        // Style buttons
+        submitBtn.setBackground(new Color(139, 195, 74));
+        submitBtn.setForeground(Color.WHITE);
+        submitBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        submitBtn.setPreferredSize(new Dimension(180, 40));
+        submitBtn.setFocusPainted(false);
+
+        cancelBtn.setBackground(new Color(121, 85, 72));
+        cancelBtn.setForeground(Color.WHITE);
+        cancelBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        cancelBtn.setPreferredSize(new Dimension(120, 40));
+        cancelBtn.setFocusPainted(false);
+
+        clearBtn.setBackground(new Color(33, 150, 243));
+        clearBtn.setForeground(Color.WHITE);
+        clearBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        clearBtn.setPreferredSize(new Dimension(120, 40));
+        clearBtn.setFocusPainted(false);
 
         submitBtn.addActionListener(e -> saveReservation());
         cancelBtn.addActionListener(e -> {
-            new DashboardScreen().setVisible(true);
+            new LoginScreen().setVisible(true);
             dispose();
         });
+        clearBtn.addActionListener(e -> clearForm());
 
         buttonPanel.add(submitBtn);
         buttonPanel.add(cancelBtn);
+        buttonPanel.add(clearBtn);
 
-        mainPanel.add(titleLabel, BorderLayout.NORTH);
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(formPanel, BorderLayout.CENTER);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
     }
 
+    private void loadAvailableRooms() {
+        roomComboBox.removeAllItems();
+        roomComboBox.addItem("-- Pilih Kamar --");
+
+        for (Room room : db.getAllRooms()) {
+            if (room.isAvailable()) {
+                roomComboBox.addItem(room.getName() + " - Rp " +
+                        String.format("%,.0f", room.getPrice()));
+
+                // Simpan ID di client property
+                roomComboBox.putClientProperty("room_" + roomComboBox.getItemCount(), room.getId());
+            }
+        }
+
+        if (roomComboBox.getItemCount() == 1) {
+            roomComboBox.addItem("Tidak ada kamar tersedia");
+            roomComboBox.setEnabled(false);
+        }
+    }
+
     private void saveReservation() {
-        if (validateForm()) {
-            Reservation reservation = new Reservation(
-                    0,
+        if (!validateForm()) {
+            return;
+        }
+
+        try {
+            int roomId = getSelectedRoomId();
+            if (roomId == -1) {
+                JOptionPane.showMessageDialog(this,
+                        "Pilih kamar terlebih dahulu!",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Date checkInDate = (Date) checkInSpinner.getValue();
+            Date checkOutDate = (Date) checkOutSpinner.getValue();
+
+            LocalDate checkIn = checkInDate.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+            LocalDate checkOut = checkOutDate.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+
+            if (checkOut.isBefore(checkIn) || checkOut.isEqual(checkIn)) {
+                JOptionPane.showMessageDialog(this,
+                        "Tanggal check-out harus setelah tanggal check-in!",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            long nights = java.time.temporal.ChronoUnit.DAYS.between(checkIn, checkOut);
+            Room selectedRoom = db.getRoomById(roomId);
+            double totalPrice = selectedRoom.getPrice() * nights;
+
+            // Konfirmasi
+            String confirmation = String.format(
+                    "Konfirmasi Reservasi:\n\n" +
+                            "Nama: %s\n" +
+                            "Email: %s\n" +
+                            "Telepon: %s\n" +
+                            "Kamar: %s\n" +
+                            "Check-in: %s\n" +
+                            "Check-out: %s (%d malam)\n" +
+                            "Total: Rp %,.0f\n\n" +
+                            "Simpan reservasi?",
                     nameField.getText(),
                     emailField.getText(),
                     phoneField.getText(),
-                    1, // ID kamar sederhana
-                    LocalDate.now(),
-                    LocalDate.now().plusDays(3),
-                    "PENDING"
+                    selectedRoom.getName(),
+                    checkIn,
+                    checkOut,
+                    nights,
+                    totalPrice
             );
 
-            db.addReservation(reservation);
-            JOptionPane.showMessageDialog(this, "Reservasi berhasil disimpan!",
-                    "Sukses", JOptionPane.INFORMATION_MESSAGE);
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    confirmation, "Konfirmasi Reservasi",
+                    JOptionPane.YES_NO_OPTION);
 
-            new DashboardScreen().setVisible(true);
-            dispose();
+            if (confirm == JOptionPane.YES_OPTION) {
+                Reservation reservation = new Reservation(
+                        0,
+                        nameField.getText().trim(),
+                        emailField.getText().trim(),
+                        phoneField.getText().trim(),
+                        roomId,
+                        checkIn,
+                        checkOut,
+                        "PENDING"
+                );
+
+                db.addReservation(reservation);
+
+                String successMsg = String.format(
+                        "Reservasi Berhasil!\n\n" +
+                                "ID Reservasi: %d\n" +
+                                "Total pembayaran: Rp %,.0f",
+                        db.getTotalReservations(),
+                        totalPrice
+                );
+
+                JOptionPane.showMessageDialog(this,
+                        successMsg, "Sukses", JOptionPane.INFORMATION_MESSAGE);
+
+                clearForm();
+                new LoginScreen().setVisible(true);
+                dispose();
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
+    }
+
+    private int getSelectedRoomId() {
+        int selectedIndex = roomComboBox.getSelectedIndex();
+        if (selectedIndex <= 0) return -1;
+
+        Object roomId = roomComboBox.getClientProperty("room_" + selectedIndex);
+        return roomId != null ? (int) roomId : -1;
     }
 
     private boolean validateForm() {
-        if (nameField.getText().isEmpty() || emailField.getText().isEmpty() || phoneField.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Harap lengkapi semua field!",
+        if (nameField.getText().trim().isEmpty() ||
+                emailField.getText().trim().isEmpty() ||
+                phoneField.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Harap lengkapi semua field!",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
+
+        if (roomComboBox.getSelectedIndex() <= 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Pilih kamar terlebih dahulu!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
         return true;
     }
 
-    private void styleButton(JButton button, Color color) {
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setFocusPainted(false);
-        button.setPreferredSize(new Dimension(200, 40));
+    private void clearForm() {
+        nameField.setText("");
+        emailField.setText("");
+        phoneField.setText("");
+        roomComboBox.setSelectedIndex(0);
+        checkInSpinner.setValue(new Date());
+
+        Date tomorrow = new Date(System.currentTimeMillis() + (1000 * 60 * 60 * 24 * 2));
+        checkOutSpinner.setValue(tomorrow);
+
+        nameField.requestFocus();
     }
 }

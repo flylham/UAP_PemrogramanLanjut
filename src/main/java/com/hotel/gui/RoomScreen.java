@@ -2,6 +2,7 @@ package com.hotel.gui;
 
 import com.hotel.database.DatabaseManager;
 import com.hotel.model.Room;
+import com.hotel.auth.LoginScreen;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -11,7 +12,6 @@ public class RoomScreen extends JFrame {
     private JTable roomTable;
     private DefaultTableModel tableModel;
 
-    // KONSTRUKTOR
     public RoomScreen() {
         initUI();
         loadRoomData();
@@ -38,7 +38,7 @@ public class RoomScreen extends JFrame {
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Tidak bisa edit langsung
+                return false;
             }
         };
         roomTable = new JTable(tableModel);
@@ -51,24 +51,64 @@ public class RoomScreen extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
         buttonPanel.setBackground(new Color(244, 241, 222));
 
-        JButton backBtn = new JButton("Kembali ke Dashboard");
+        JButton backBtn = new JButton("Kembali ke Login");
         JButton reserveBtn = new JButton("Buat Reservasi");
+        JButton refreshBtn = new JButton("Refresh");
 
-        styleButton(backBtn, new Color(121, 85, 72));
-        styleButton(reserveBtn, new Color(139, 195, 74));
+        // Style buttons
+        backBtn.setBackground(new Color(121, 85, 72));
+        backBtn.setForeground(Color.WHITE);
+        backBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        backBtn.setPreferredSize(new Dimension(180, 40));
+        backBtn.setFocusPainted(false);
 
+        reserveBtn.setBackground(new Color(139, 195, 74));
+        reserveBtn.setForeground(Color.WHITE);
+        reserveBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        reserveBtn.setPreferredSize(new Dimension(180, 40));
+        reserveBtn.setFocusPainted(false);
+
+        refreshBtn.setBackground(new Color(33, 150, 243));
+        refreshBtn.setForeground(Color.WHITE);
+        refreshBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        refreshBtn.setPreferredSize(new Dimension(120, 40));
+        refreshBtn.setFocusPainted(false);
+
+        // Back button - ke LoginScreen
         backBtn.addActionListener(e -> {
-            new DashboardScreen().setVisible(true);
+            new LoginScreen().setVisible(true);
             dispose();
         });
 
+        // Reserve button - SIMPEL tanpa parameter User
         reserveBtn.addActionListener(e -> {
-            new ReservationScreen().setVisible(true);
-            dispose();
+            int selectedRow = roomTable.getSelectedRow();
+
+            if (selectedRow >= 0) {
+                int roomId = (int) tableModel.getValueAt(selectedRow, 0);
+                String roomName = (String) tableModel.getValueAt(selectedRow, 1);
+                String status = (String) tableModel.getValueAt(selectedRow, 4);
+
+                if ("Tersedia".equals(status)) {
+                    ReservationScreen reservationScreen = new ReservationScreen(roomId, roomName);
+                    reservationScreen.setVisible(true);
+                    dispose();
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Kamar tidak tersedia!",
+                            "Info", JOptionPane.WARNING_MESSAGE);
+                }
+            } else {
+                new ReservationScreen().setVisible(true);
+                dispose();
+            }
         });
+
+        refreshBtn.addActionListener(e -> loadRoomData());
 
         buttonPanel.add(backBtn);
         buttonPanel.add(reserveBtn);
+        buttonPanel.add(refreshBtn);
 
         mainPanel.add(titleLabel, BorderLayout.NORTH);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
@@ -78,7 +118,7 @@ public class RoomScreen extends JFrame {
     }
 
     private void loadRoomData() {
-        tableModel.setRowCount(0); // Clear existing data
+        tableModel.setRowCount(0);
         for (Room room : db.getAllRooms()) {
             String status = room.isAvailable() ? "Tersedia" : "Terisi";
             tableModel.addRow(new Object[]{
@@ -89,13 +129,5 @@ public class RoomScreen extends JFrame {
                     status
             });
         }
-    }
-
-    private void styleButton(JButton button, Color color) {
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setFocusPainted(false);
-        button.setPreferredSize(new Dimension(200, 40));
     }
 }

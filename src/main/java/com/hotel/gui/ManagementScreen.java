@@ -72,8 +72,9 @@ public class ManagementScreen extends JFrame {
 
         JButton backBtn = new JButton("Kembali ke Dashboard");
         styleButton(backBtn, new Color(121, 85, 72));
+        // Di ManagementScreen.java, cari bagian back button:
         backBtn.addActionListener(e -> {
-            new DashboardScreen().setVisible(true);
+            new com.hotel.auth.LoginScreen().setVisible(true); // UPDATE
             dispose();
         });
 
