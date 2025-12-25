@@ -16,30 +16,29 @@ Aplikasi dikembangkan menggunakan konsep **Object Oriented Programming (OOP)**, 
 ---
 
 ## Struktur Project
-UAP_PemrogramanLanjut [reservasi-hotel]
-├── src
-│ └── main
-│ ├── java
-│ │ └── com.hotel
-│ │ ├── Main.java
-│ │ ├── auth
-│ │ │ └── LoginScreen.java
-│ │ ├── database
-│ │ │ ├── AuthManager.java
-│ │ │ └── DatabaseManager.java
-│ │ ├── gui
-│ │ │ ├── UserDashboardScreen.java
-│ │ │ └── ReservationScreen.java
-│ │ │ └── ProfilScreen.java
-│ │ │ └── ManageReservationsScreen.java
-│ │ └── model
-│ │ ├── User.java
-│ │ └── Reservation.java
-│ └── resources
-├── test
-├── pom.xml
-├── README.md
-└── .gitignore
+```* UAP_PemrogramanLanjut-reservasi-hotel
+* ├── .idea
+* ├── data
+* ├── src
+* │   └── main
+* │       └── java
+* │           └── com.hotel
+* │               ├── auth
+* │               │   └── LoginScreen.java
+* │               ├── database
+* │               │   └── AuthManager.java
+* │               ├── gui
+* │               │   ├── ManageReservationsScreen.java
+* │               │   ├── ProfileScreen.java
+* │               │   ├── ReservationScreen.java
+* │               │   └── UserDashboardScreen.java
+* │               ├── model
+* │               │   └── User.java
+* │               └── Main.java
+* ├── target
+* ├── .gitignore
+* ├── pom.xml
+* └── README.md```
 
 
 ---
@@ -159,4 +158,5 @@ Semua data disimpan dalam format file teks dan akan dimuat kembali saat aplikasi
 
 ##  Tim Pengembang
 Nama  : Moch Rafly Ilhamsyah & Muh Rifqi Palettei
+
 Program Studi : Informatika
