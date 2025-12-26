@@ -225,7 +225,6 @@ public class UserDashboardScreen extends JFrame {
                 reservationDate = LocalDate.now();
             }
 
-            // Buat folder
             String folderName = "Reservasi_" + reservationDate.format(DateTimeFormatter.ofPattern("ddMMMMyyyy"));
             File folder = new File(DAILY_FOLDER + "/" + folderName);
             if (!folder.exists()) {
@@ -234,7 +233,6 @@ public class UserDashboardScreen extends JFrame {
 
             File file = new File(folder, "reservations.txt");
 
-            // Baca semua data jika file ada
             List<String> lines = new ArrayList<>();
             if (file.exists()) {
                 try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -251,7 +249,6 @@ public class UserDashboardScreen extends JFrame {
             String userInfo = "User: " + currentUser.getUsername() + " (" + currentUser.getFullName() + ")";
             String separator = "======================================";
 
-            // Buat reservasi baru dalam format teks
             List<String> newReservationLines = new ArrayList<>();
             newReservationLines.add("Kode: " + reservation.getCode());
             newReservationLines.add("Tipe Kamar: " + reservation.getRoomType());
@@ -935,10 +932,6 @@ public class UserDashboardScreen extends JFrame {
 
     public void updateReservations() {
         loadReservationsFromDailyFolder();
-    }
-
-    public User getCurrentUser() {
-        return currentUser;
     }
 
     private JPanel createFooterPanel() {

@@ -5,7 +5,7 @@ public class User {
     private String username;
     private String password;
     private String email;
-    private String role; // "ADMIN" atau "USER"
+    private String role;
     private String fullName;
 
     public User(int id, String username, String password, String email, String role, String fullName) {

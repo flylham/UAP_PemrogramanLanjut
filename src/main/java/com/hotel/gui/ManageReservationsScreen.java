@@ -376,10 +376,10 @@ public class ManageReservationsScreen extends JFrame {
 
                 UserDashboardScreen.Reservation updatedReservation =
                         parent.new Reservation(
-                                reservation.getCode(), // Kode tetap sama
+                                reservation.getCode(),
                                 dateField.getText(),
                                 roomType,
-                                reservation.getStatus(), // Status tetap
+                                reservation.getStatus(),
                                 totalFormatted,
                                 notesArea.getText(),
                                 checkInField.getText(),
