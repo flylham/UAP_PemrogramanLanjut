@@ -290,7 +290,6 @@ public class ManageReservationsScreen extends JFrame {
         detailPanel.add(roomTypeCombo);
 
         detailPanel.add(new JLabel("Status:"));
-        // Status hanya ditampilkan, tidak bisa diubah
         JLabel statusLabel = new JLabel(reservation.getStatus());
         if (reservation.getStatus().equals("Dikonfirmasi")) {
             statusLabel.setForeground(new Color(39, 174, 96));
@@ -375,7 +374,6 @@ public class ManageReservationsScreen extends JFrame {
                 double total = pricePerNight * (int) roomSpinner.getValue() * daysBetween;
                 String totalFormatted = String.format("Rp %,.0f", total);
 
-                // Buat objek reservasi yang sudah diupdate
                 UserDashboardScreen.Reservation updatedReservation =
                         parent.new Reservation(
                                 reservation.getCode(), // Kode tetap sama
@@ -390,7 +388,6 @@ public class ManageReservationsScreen extends JFrame {
                                 (int) guestSpinner.getValue()
                         );
 
-                // PERBAIKAN UTAMA: Panggil method updateReservation di parent
                 parent.updateReservation(index, updatedReservation);
 
                 JOptionPane.showMessageDialog(detailDialog,

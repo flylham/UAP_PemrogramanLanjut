@@ -58,17 +58,6 @@ public class UserDashboardScreen extends JFrame {
         public String getCheckOut() { return checkOut; }
         public int getRooms() { return rooms; }
         public int getGuests() { return guests; }
-
-        // Setter methods
-        public void setDate(String date) { this.date = date; }
-        public void setRoomType(String roomType) { this.roomType = roomType; }
-        public void setStatus(String status) { this.status = status; }
-        public void setTotal(String total) { this.total = total; }
-        public void setNotes(String notes) { this.notes = notes; }
-        public void setCheckIn(String checkIn) { this.checkIn = checkIn; }
-        public void setCheckOut(String checkOut) { this.checkOut = checkOut; }
-        public void setRooms(int rooms) { this.rooms = rooms; }
-        public void setGuests(int guests) { this.guests = guests; }
     }
 
     public UserDashboardScreen(User user) {
