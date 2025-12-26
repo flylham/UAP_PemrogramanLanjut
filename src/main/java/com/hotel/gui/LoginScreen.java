@@ -1,8 +1,8 @@
-package com.hotel.auth;
+package com.hotel.gui;
 
 import com.hotel.database.AuthManager;
 import com.hotel.model.User;
-import com.hotel.gui.UserDashboardScreen;
+
 import javax.swing.*;
 import java.awt.*;
 

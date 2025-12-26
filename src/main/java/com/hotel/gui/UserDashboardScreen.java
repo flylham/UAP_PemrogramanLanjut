@@ -1,7 +1,7 @@
 package com.hotel.gui;
 
 import com.hotel.model.User;
-import com.hotel.auth.LoginScreen;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
@@ -884,7 +884,6 @@ public class UserDashboardScreen extends JFrame {
         return row;
     }
 
-    // =========== BUSINESS LOGIC METHODS - DIPERBAIKI ===========
     public List<Reservation> getReservations() {
         return new ArrayList<>(reservations);
     }

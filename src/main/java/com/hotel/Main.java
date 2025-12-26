@@ -1,6 +1,6 @@
 package com.hotel;
 
-import com.hotel.auth.LoginScreen;
+import com.hotel.gui.LoginScreen;
 import javax.swing.*;
 
 public class Main {
